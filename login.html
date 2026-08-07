@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login – Travelling Allowance Journal</title>
+  <meta name="description" content="Login to the Travelling Allowance Journal system – Enter your employee details to proceed."/>
+  <link rel="icon" type="image/png" href="logo/TA%20Journal.png"/>
+  <link rel="apple-touch-icon" href="logo/TA%20Journal.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Serif:wght@400;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="login.css"/>
+</head>
+<body>
+
+  <!-- Animated background particles -->
+  <div id="bg-canvas">
+    <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+    <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+    <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+    <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+  </div>
+
+  <!-- Main card -->
+  <div id="login-wrapper">
+
+    <!-- Left panel – branding -->
+    <div id="brand-panel">
+      <div class="brand-glow"></div>
+      <div class="brand-content">
+        <div class="brand-badge">
+          <img src="logo/TA%20Journal.png" alt="TA Logo" class="brand-logo-img"/>
+        </div>
+        <h1 class="brand-title">TA Journal</h1>
+        <p class="brand-subtitle">Travelling Allowance<br/>Management System</p>
+        <div class="brand-rule"></div>
+        <p class="brand-desc">
+          Digitally generate, manage, and print your<br/>
+          <strong>Form G 37 F/R4</strong> TA journals<br/>
+          as per Railway rules.
+        </p>
+        <div class="brand-tags">
+          <span class="tag">NER</span>
+          <span class="tag">S.R. G/G. 1677</span>
+          <span class="tag">A4 Print Ready</span>
+        </div>
+      </div>
+      <div class="brand-footer">Indian Railways – TA Management</div>
+    </div>
+
+    <!-- Right panel – form -->
+    <div id="form-panel">
+      <div class="form-panel-inner">
+
+        <div class="welcome-block">
+          <h2 class="welcome-title">Welcome</h2>
+          <p class="welcome-sub">Please enter your details to continue</p>
+        </div>
+
+        <form id="loginForm" autocomplete="off" novalidate>
+
+          <!-- Row 1 -->
+          <div class="field-grid">
+            <div class="field" data-full>
+              <label for="l-name">Full Name <span class="req">*</span></label>
+              <div class="input-wrap">
+                <span class="inp-icon">👤</span>
+                <input type="text" id="l-name" placeholder="e.g. Rajesh Kumar Bharti" required/>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 2 -->
+          <div class="field-grid col2">
+            <div class="field">
+              <label for="l-branch">Branch <span class="req">*</span></label>
+              <div class="input-wrap">
+                <span class="inp-icon">🏢</span>
+                <select id="l-branch" required>
+                  <option value="">Select Branch…</option>
+                  <option value="Commercial">Commercial</option>
+                  <option value="Personnel">Personnel</option>
+                  <option value="Electrical">Electrical</option>
+                  <option value="Engineering">Engineering</option>
+                  <option value="Medical">Medical</option>
+                  <option value="Mechanical">Mechanical</option>
+                  <option value="Signal &amp; Telecom">Signal &amp; Telecom</option>
+                  <option value="Accounts">Accounts</option>
+                  <option value="Operating">Operating</option>
+                  <option value="Safety">Safety</option>
+                  <option value="General Administration">General Administration</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="l-zone">Zone <span class="req">*</span></label>
+              <div class="input-wrap">
+                <span class="inp-icon">🗺️</span>
+                <select id="l-zone" required>
+                  <option value="">Select Zone…</option>
+                  <option value="C.R.">C.R. – Central Railway</option>
+                  <option value="E.R.">E.R. – Eastern Railway</option>
+                  <option value="E.C.R.">E.C.R. – East Central Railway</option>
+                  <option value="E.C.O.R.">E.C.O.R. – East Coast Railway</option>
+                  <option value="N.R.">N.R. – Northern Railway</option>
+                  <option value="N.C.R.">N.C.R. – North Central Railway</option>
+                  <option value="N.E.R.">N.E.R. – North Eastern Railway</option>
+                  <option value="N.F.R.">N.F.R. – Northeast Frontier Railway</option>
+                  <option value="N.W.R.">N.W.R. – North Western Railway</option>
+                  <option value="S.R.">S.R. – Southern Railway</option>
+                  <option value="S.C.R.">S.C.R. – South Central Railway</option>
+                  <option value="S.E.R.">S.E.R. – South Eastern Railway</option>
+                  <option value="S.E.C.R.">S.E.C.R. – South East Central Railway</option>
+                  <option value="S.W.R.">S.W.R. – South Western Railway</option>
+                  <option value="W.R.">W.R. – Western Railway</option>
+                  <option value="W.C.R.">W.C.R. – West Central Railway</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 3 -->
+          <div class="field-grid col2">
+            <div class="field">
+              <label for="l-division">Division <span class="req">*</span></label>
+              <div class="input-wrap">
+                <span class="inp-icon">📍</span>
+                <input type="text" id="l-division" placeholder="e.g. ADI, MAS, UMB, HWH" required/>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="l-hq">HQ / Station Code <span class="req">*</span></label>
+              <div class="input-wrap">
+                <span class="inp-icon">🏠</span>
+                <input type="text" id="l-hq" placeholder="e.g. BRC, LKO, NGP, SBC" required maxlength="6"
+                  style="text-transform:uppercase"/>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 4 -->
+          <div class="field-grid col2">
+            <div class="field">
+              <label for="l-designation">Designation <span class="req">*</span></label>
+              <div class="input-wrap">
+                <span class="inp-icon">🎖️</span>
+                <select id="l-designation" required>
+                  <option value="">Select Designation…</option>
+                  <optgroup label="Commercial">
+                    <option value="CCTS">CCTS – Chief Commercial Ticket Supervisor</option>
+                    <option value="CTS">CTS – Commercial Ticket Supervisor</option>
+                    <option value="CTI">CTI – Chief Ticket Inspector</option>
+                    <option value="TTE">TTE – Travelling Ticket Examiner</option>
+                    <option value="TC">TC – Ticket Collector</option>
+                    <option value="CMI">CMI – Commercial Mechanical Inspector</option>
+                    <option value="GS">GS – Goods Supervisor</option>
+                  </optgroup>
+                  <optgroup label="Operating">
+                    <option value="SM">SM – Station Master</option>
+                    <option value="ASM">ASM – Assistant Station Master</option>
+                    <option value="LP">LP – Loco Pilot</option>
+                    <option value="ALP">ALP – Assistant Loco Pilot</option>
+                    <option value="Guard">Guard</option>
+                  </optgroup>
+                  <optgroup label="Admin / Accounts">
+                    <option value="OS">OS – Office Superintendent</option>
+                    <option value="SSE">SSE – Senior Section Engineer</option>
+                    <option value="JE">JE – Junior Engineer</option>
+                    <option value="Sr.Clerk">Sr. Clerk</option>
+                    <option value="Clerk">Clerk</option>
+                  </optgroup>
+                  <optgroup label="Other">
+                    <option value="Custom">Custom / Other…</option>
+                  </optgroup>
+                </select>
+              </div>
+            </div>
+            <div class="field" id="custom-desig-field" style="display:none">
+              <label for="l-custom-desig">Custom Designation</label>
+              <div class="input-wrap">
+                <span class="inp-icon">✏️</span>
+                <input type="text" id="l-custom-desig" placeholder="Enter your designation"/>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 5 -->
+          <div class="field-grid col2">
+            <div class="field">
+              <label for="l-doa">Date of Appointment / Joining <span class="req">*</span></label>
+              <div class="input-wrap">
+                <span class="inp-icon">📅</span>
+                <input type="date" id="l-doa" required/>
+              </div>
+              <span class="field-hint">e.g. 03 August 2000</span>
+            </div>
+
+            <div class="field">
+              <label for="l-pf">P.F. No. <span class="req">*</span></label>
+              <div class="input-wrap">
+                <span class="inp-icon">🔖</span>
+                <input type="text" id="l-pf" placeholder="e.g. 50405538877" required/>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 6 – Pay Details -->
+          <div class="section-divider">
+            <span>Pay &amp; Allowance Details</span>
+          </div>
+
+          <div class="field-grid col3">
+            <div class="field">
+              <label for="l-basicpay">Basic Pay (₹) <span class="req">*</span></label>
+              <div class="input-wrap">
+                <span class="inp-icon">💰</span>
+                <input type="number" id="l-basicpay" placeholder="e.g. 50500" min="0" required/>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="l-level">Level <span class="req">*</span></label>
+              <div class="input-wrap">
+                <span class="inp-icon">📊</span>
+                <select id="l-level" required>
+                  <option value="">Level…</option>
+                  <option value="1">Level 1</option>
+                  <option value="2">Level 2</option>
+                  <option value="3">Level 3</option>
+                  <option value="4">Level 4</option>
+                  <option value="5">Level 5</option>
+                  <option value="6">Level 6</option>
+                  <option value="7">Level 7</option>
+                  <option value="8">Level 8</option>
+                  <option value="9">Level 9</option>
+                  <option value="10">Level 10</option>
+                  <option value="11">Level 11</option>
+                  <option value="12">Level 12</option>
+                  <option value="13">Level 13</option>
+                  <option value="14">Level 14</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="l-gp">Grade Pay (₹)</label>
+              <div class="input-wrap">
+                <span class="inp-icon">🏷️</span>
+                <input type="number" id="l-gp" placeholder="e.g. 4200" min="0"/>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-grid col2">
+            <div class="field">
+              <label for="l-scale">Pay Scale / Band</label>
+              <div class="input-wrap">
+                <span class="inp-icon">📏</span>
+                <input type="text" id="l-scale" placeholder="e.g. 9300-34800"/>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="l-tarate">T.A. Rate (₹ / day) <span class="req">*</span></label>
+              <div class="input-wrap">
+                <span class="inp-icon">🚆</span>
+                <input type="number" id="l-tarate" placeholder="e.g. 1000" min="0" required/>
+              </div>
+            </div>
+          </div>
+
+          <!-- Login Button -->
+          <button type="submit" id="loginBtn" class="login-btn">
+            <span class="btn-text">Proceed to TA Journal</span>
+            <span class="btn-arrow">→</span>
+          </button>
+
+          <p class="login-note">☁️ Your details are saved locally &amp; securely synced to MongoDB cloud storage.</p>
+
+        </form>
+      </div>
+    </div><!-- /form-panel -->
+
+  </div><!-- /login-wrapper -->
+
+  <script src="login.js"></script>
+</body>
+</html>

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Travelling Allowance Journal – G 37 F/R4</title>
+  <meta name="description" content="Generate and print Travelling Allowance Journal – Form G 37 F/R4, S.R. G/G. 1677"/>
+  <link rel="icon" type="image/png" href="logo/TA%20Journal.png"/>
+  <link rel="apple-touch-icon" href="logo/TA%20Journal.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Serif:wght@400;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <script>
+    (function(){
+      if (!localStorage.getItem('ta_journal_employee')) {
+        window.location.replace('login.html');
+      }
+    })();
+  </script>
+</head>
+<body>
+<!-- Sidebar backdrop (click to close on mobile / when open) -->
+<div id="sidebar-backdrop"></div>
+
+<div id="app-shell">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside id="sidebar" class="sidebar-hidden">
+
+    <!-- Sidebar Header -->
+    <div class="sidebar-header">
+      <img src="logo/TA%20Journal.png" alt="TA Logo" class="logo-badge"/>
+      <div style="flex:1;min-width:0">
+        <h1 class="sidebar-title">TA Journal</h1>
+        <p class="sidebar-sub">Form G 37 F/R4</p>
+      </div>
+      <!-- Close Toggle Button on right of header -->
+      <button id="btnToggleSidebarHeader" class="btn-toggle-sidebar" title="Close slider" aria-label="Close slider" aria-expanded="true">
+        <span class="ham-bar"></span>
+        <span class="ham-bar"></span>
+        <span class="ham-bar"></span>
+      </button>
+    </div>
+
+    <!-- Profile Card -->
+    <section class="panel" id="panel-profile">
+      <div class="profile-card">
+        <div class="profile-avatar" id="profileAvatar">RK</div>
+        <div class="profile-info">
+          <div class="profile-name"  id="profileName">—</div>
+          <div class="profile-desig" id="profileDesig">—</div>
+        </div>
+      </div>
+      <div class="profile-details" id="profileDetails"></div>
+      <button id="btnEditProfile" class="btn btn-edit-profile">✎ Edit Profile</button>
+    </section>
+
+
+
+    <!-- Row Editor (shown when a row is selected) -->
+    <section class="panel" id="panel-row-editor" style="display:none">
+      <h2 class="panel-title">
+        <span class="panel-icon">✏️</span>
+        Edit Row – <span id="editorDateLabel" style="color:var(--accent2);font-weight:700"></span>
+        <button id="btnCloseEditor" title="Close editor" style="margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem;padding:0">✕</button>
+      </h2>
+
+      <div class="form-row two-col">
+        <div>
+          <label>Train No.</label>
+          <input type="text" id="eTrain" placeholder="e.g. 12500"/>
+        </div>
+        <div>
+          <label>Distance (Km)</label>
+          <input type="number" id="eDist" placeholder="0" min="0"/>
+        </div>
+      </div>
+
+      <div class="form-row two-col">
+        <div>
+          <label>Departure</label>
+          <input type="time" id="eDepart"/>
+        </div>
+        <div>
+          <label>Arrival</label>
+          <input type="time" id="eArrival"/>
+        </div>
+      </div>
+
+      <div class="form-row two-col">
+        <div>
+          <label>From Station</label>
+          <input type="text" id="eFrom" placeholder="e.g. BSB"/>
+        </div>
+        <div>
+          <label>To Station</label>
+          <input type="text" id="eTo" placeholder="e.g. PRYJ"/>
+        </div>
+      </div>
+
+      <div class="form-row two-col">
+        <div>
+          <label>Day / Night %</label>
+          <select id="eDayNight">
+            <option value="">–</option>
+            <option value="30%">30%</option>
+            <option value="70%">70%</option>
+            <option value="100%">100%</option>
+          </select>
+        </div>
+        <div>
+          <label>Amount (₹)</label>
+          <input type="number" id="eAmount" placeholder="0" min="0"/>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>Objective of Journey</label>
+        <select id="eObjective">
+          <option value="A.C. Manning">A.C. Manning</option>
+          <option value="Inspection">Inspection</option>
+          <option value="Training">Training</option>
+          <option value="Office Duty">Office Duty</option>
+          <option value="Rest">Rest</option>
+          <option value="Leave">Leave</option>
+          <option value="Custom">Custom…</option>
+        </select>
+      </div>
+      <div class="form-row" id="eCustomRow" style="display:none">
+        <label>Custom Objective</label>
+        <input type="text" id="eCustomObjective" placeholder="Enter objective"/>
+      </div>
+
+      <div class="editor-btns">
+        <button id="btnSaveRow"   class="btn btn-primary" style="margin-bottom:0">💾 Save Row</button>
+        <button id="btnClearRow"  class="btn btn-danger"  style="margin-bottom:0">🗑 Reset Row</button>
+      </div>
+    </section>
+
+    <!-- Actions -->
+    <section class="panel" id="panel-actions">
+      <h2 class="panel-title"><span class="panel-icon">⚙️</span> Actions</h2>
+      <button id="btnClearAll"   class="btn btn-danger">🗑 Clear All Rows</button>
+      <button id="btnPrint"      class="btn btn-accent">🖨 Print / Save PDF</button>
+      <button id="btnLoadSample" class="btn btn-ghost">📋 Load Sample Data</button>
+    </section>
+
+    <!-- Hidden inputs -->
+    <input type="hidden" id="journalMonth"/>
+    <input type="hidden" id="empName"/>
+    <input type="hidden" id="empDesig"/>
+    <input type="hidden" id="empLevel"/>
+    <input type="hidden" id="empBranch"/>
+    <input type="hidden" id="empHQ"/>
+    <input type="hidden" id="empDiv"/>
+    <input type="hidden" id="empBasicPay"/>
+    <input type="hidden" id="empScale"/>
+    <input type="hidden" id="empGP"/>
+    <input type="hidden" id="empTARate"/>
+    <input type="hidden" id="empPF"/>
+    <input type="hidden" id="empDOA"/>
+    <input type="hidden" id="empZone"/>
+
+  </aside>
+
+  <!-- ══ PREVIEW PANE ══ -->
+  <main id="preview-pane">
+    <div id="preview-toolbar">
+      <!-- ☰ Hamburger button -->
+      <button id="btnToggleSidebar" class="btn-toggle-sidebar" title="Toggle sidebar" aria-label="Toggle sidebar" aria-expanded="false">
+        <span class="ham-bar"></span>
+        <span class="ham-bar"></span>
+        <span class="ham-bar"></span>
+      </button>
+      <div class="toolbar-month-selects">
+        <span class="preview-label">Live Preview –</span>
+        <select id="selToolbarMonth" class="toolbar-select">
+          <option value="">Select Month…</option>
+          <option value="01">January</option>
+          <option value="02">February</option>
+          <option value="03">March</option>
+          <option value="04">April</option>
+          <option value="05">May</option>
+          <option value="06">June</option>
+          <option value="07">July</option>
+          <option value="08">August</option>
+          <option value="09">September</option>
+          <option value="10">October</option>
+          <option value="11">November</option>
+          <option value="12">December</option>
+        </select>
+        <select id="selToolbarYear" class="toolbar-select">
+          <option value="">Select Year…</option>
+          <option value="2020">2020</option>
+          <option value="2021">2021</option>
+          <option value="2022">2022</option>
+          <option value="2023">2023</option>
+          <option value="2024">2024</option>
+          <option value="2025">2025</option>
+          <option value="2026">2026</option>
+          <option value="2027">2027</option>
+          <option value="2028">2028</option>
+          <option value="2029">2029</option>
+          <option value="2030">2030</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="preview-hint no-print" id="clickHint" style="font-size:.72rem;color:var(--text-muted)">💡 Click any row to edit</span>
+        <button id="btnPrintTop" class="btn btn-accent btn-sm">🖨 Print</button>
+      </div>
+    </div>
+    <div id="preview-scroll">
+      <div id="ta-document-scaler">
+        <div id="ta-document">
+          <div class="doc-placeholder">
+            <div class="placeholder-icon">📄</div>
+            <h3>No entries yet</h3>
+            <p>Tap the <strong>＋</strong> button below to add your first journey entry.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<!-- ══ FAB – Add Entry ══ -->
+<button id="fab-add" class="fab-btn no-print" title="Add new journal entry" aria-label="Add new journal entry">
+  <span class="fab-icon">＋</span>
+</button>
+
+<!-- ══ ENTRY SHEET – Slide-up form ══ -->
+<div id="entry-overlay" class="no-print" aria-hidden="true" role="dialog" aria-label="Add Journal Entry">
+  <div id="entry-sheet">
+
+    <!-- Drag handle -->
+    <div class="sheet-handle"></div>
+
+    <!-- Header: Claim / No Claim tabs + close -->
+    <div class="sheet-header">
+      <div class="sheet-tabs">
+        <button class="sheet-tab active" id="tabClaim" type="button">Claim</button>
+        <button class="sheet-tab" id="tabNoClaim" type="button">No Claim</button>
+      </div>
+      <button id="btnCloseSheet" class="sheet-close-btn" aria-label="Close" type="button">&times;</button>
+    </div>
+
+    <!-- Scrollable form body -->
+    <div class="sheet-body">
+      <form id="entryForm" autocomplete="off" novalidate>
+
+        <!-- CLAIM FIELDS CONTAINER -->
+        <div id="formClaimFields">
+          <!-- Train / Vehicle No. -->
+          <div class="sf-field">
+            <label for="ef-train">Train / Vehicle No.</label>
+            <input type="text" id="ef-train" placeholder="e.g. 12500 or MH-XX-YYYY"/>
+          </div>
+
+          <!-- Departure -->
+          <div class="sf-group">
+            <div class="sf-group-label">Departure</div>
+            <label class="sf-datetime-row" for="ef-depart-dt">
+              <span class="sf-dt-icon">🛫</span>
+              <div class="sf-dt-wrap">
+                <span class="sf-dt-label">Select Date &amp; Time</span>
+                <input type="datetime-local" id="ef-depart-dt" class="sf-dt-input" required/>
+              </div>
+            </label>
+          </div>
+
+          <!-- Arrival -->
+          <div class="sf-group">
+            <div class="sf-group-label">Arrival</div>
+            <label class="sf-datetime-row" for="ef-arrival-dt">
+              <span class="sf-dt-icon">🛬</span>
+              <div class="sf-dt-wrap">
+                <span class="sf-dt-label">Select Date &amp; Time</span>
+                <input type="datetime-local" id="ef-arrival-dt" class="sf-dt-input"/>
+              </div>
+            </label>
+          </div>
+
+          <!-- From / To -->
+          <div class="sf-row-2">
+            <div class="sf-field">
+              <label for="ef-from">From</label>
+              <input type="text" id="ef-from" placeholder="e.g. BSB"/>
+            </div>
+            <div class="sf-field">
+              <label for="ef-to">To</label>
+              <input type="text" id="ef-to" placeholder="e.g. PRYJ"/>
+            </div>
+          </div>
+
+          <!-- Distance -->
+          <div class="sf-field">
+            <label for="ef-dist">Distance (KM) <span class="sf-optional">Optional</span></label>
+            <input type="number" id="ef-dist" placeholder="e.g. 415" min="0"/>
+          </div>
+
+          <!-- Objective -->
+          <div class="sf-field">
+            <label for="ef-objective">Objective of Journey</label>
+            <select id="ef-objective">
+              <option value="A.C. Manning">A.C. Manning</option>
+              <option value="Sleeper">Sleeper</option>
+              <option value="Checking">Checking</option>
+              <option value="Inspection">Inspection</option>
+              <option value="Inquiry">Inquiry</option>
+              <option value="A.C. Escorting">A.C. Escorting</option>
+              <option value="On Duty">On Duty</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- NO CLAIM FIELDS CONTAINER -->
+        <div id="formNoClaimFields" style="display:none">
+          <!-- From - Date -->
+          <div class="sf-group">
+            <div class="sf-group-label">From - Date</div>
+            <label class="sf-datetime-row" for="ef-noclaim-from-date">
+              <span class="sf-dt-icon">📅</span>
+              <div class="sf-dt-wrap">
+                <span class="sf-dt-label">Select Date</span>
+                <input type="date" id="ef-noclaim-from-date" class="sf-dt-input"/>
+              </div>
+            </label>
+          </div>
+
+          <!-- To - Date -->
+          <div class="sf-group">
+            <div class="sf-group-label">To - Date</div>
+            <label class="sf-datetime-row" for="ef-noclaim-to-date">
+              <span class="sf-dt-icon">📅</span>
+              <div class="sf-dt-wrap">
+                <span class="sf-dt-label">Select Date</span>
+                <input type="date" id="ef-noclaim-to-date" class="sf-dt-input"/>
+              </div>
+            </label>
+          </div>
+
+          <!-- Objective of Journey -->
+          <div class="sf-field">
+            <label for="ef-noclaim-objective">Objective of Journey</label>
+            <select id="ef-noclaim-objective">
+              <option value="Rest">Rest</option>
+              <option value="Leave">Leave</option>
+              <option value="Sick">Sick</option>
+              <option value="Office Duty">Office Duty</option>
+              <option value="Station Duty">Station Duty</option>
+              <option value="Special">Special</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="sf-submit-btn">＋ Add Entry</button>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
