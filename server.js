@@ -17,7 +17,11 @@ require('dotenv').config();
 
 // ── Force public DNS (fixes ISP networks that block MongoDB SRV lookups) ─────
 const dns = require('dns');
-dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+} catch (e) {
+  console.warn('Could not set custom DNS servers:', e.message);
+}
 
 const express  = require('express');
 const mongoose = require('mongoose');
@@ -38,25 +42,50 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
 // ══════════════════════════════════════════════════════════════
-//  MongoDB Connection
+//  MongoDB Connection (Serverless compatible cached connection)
 // ══════════════════════════════════════════════════════════════
+let cachedDbPromise = null;
+
 async function connectDB() {
-  const uri = process.env.MONGO_URI;
-  if (!uri || uri.includes('YOUR_USERNAME')) {
-    console.error('❌  MONGO_URI not configured. Please edit your .env file.');
-    process.exit(1);
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
   }
 
+  if (cachedDbPromise) {
+    return cachedDbPromise;
+  }
+
+  const uri = process.env.MONGO_URI;
+  if (!uri || uri.includes('YOUR_USERNAME')) {
+    throw new Error('MONGO_URI is not configured in environment variables.');
+  }
+
+  cachedDbPromise = mongoose.connect(uri, {
+    serverSelectionTimeoutMS: 10000,
+  });
+
   try {
-    await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 10000,
-    });
+    await cachedDbPromise;
     console.log('✅  Connected to MongoDB Atlas – database: ta_rail');
+    return mongoose.connection;
   } catch (err) {
+    cachedDbPromise = null;
     console.error('❌  MongoDB connection failed:', err.message);
-    process.exit(1);
+    throw err;
   }
 }
+
+// Middleware to ensure DB connection for API routes
+app.use(async (req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    try {
+      await connectDB();
+    } catch (e) {
+      return res.status(500).json({ success: false, message: 'Database connection error: ' + e.message });
+    }
+  }
+  next();
+});
 
 // ══════════════════════════════════════════════════════════════
 //  HELPER – standard JSON response
@@ -201,12 +230,17 @@ app.get('*', (req, res) => {
 });
 
 // ══════════════════════════════════════════════════════════════
-//  START
+//  START & EXPORT
 // ══════════════════════════════════════════════════════════════
-(async () => {
-  await connectDB();
-  app.listen(PORT, () => {
-    console.log(`🚂  TA Rail server running  →  http://localhost:${PORT}`);
-    console.log(`📄  Open  →  http://localhost:${PORT}/login.html`);
+if (require.main === module) {
+  connectDB().then(() => {
+    app.listen(PORT, () => {
+      console.log(`🚂  TA Rail server running  →  http://localhost:${PORT}`);
+      console.log(`📄  Open  →  http://localhost:${PORT}/login.html`);
+    });
+  }).catch(err => {
+    console.error('Failed to start server locally:', err.message);
   });
-})();
+}
+
+module.exports = app;
