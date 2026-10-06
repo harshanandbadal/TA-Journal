@@ -226,8 +226,11 @@ app.get('/api/health', (req, res) => {
   res.json({ success: true, server: 'TA Rail Journal API', mongo: status });
 });
 
-// ── Catch-all: serve index.html for non-API routes ────────────
+// ── Catch-all: serve index.html for non-API client routes ──────
 app.get('*', (req, res) => {
+  if (path.extname(req.path)) {
+    return res.status(404).send('Not Found');
+  }
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
