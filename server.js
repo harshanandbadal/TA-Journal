@@ -1,5 +1,7 @@
 /* ══════════════════════════════════════════════════════════════
    server.js  –  TA Rail Journal  –  Express + MongoDB backend
+   Copyright (c) 2026 Harsh Anand Badal. All rights reserved.
+   Licensed under the MIT License.
    ══════════════════════════════════════════════════════════════
    Endpoints:
      POST   /api/employee          – upsert employee profile

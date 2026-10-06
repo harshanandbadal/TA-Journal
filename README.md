@@ -7,6 +7,7 @@
 [![Frontend](https://img.shields.io/badge/Frontend-Vanilla_JS_&_CSS3-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/)
 [![Platform](https://img.shields.io/badge/Deployment-Vercel_%7C_Node_Server-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
 [![Standard](https://img.shields.io/badge/Form-G_37_F%2FR4_A4_Print_Ready-FF9933?style=for-the-badge)](https://indianrailways.gov.in/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
 ---
 
@@ -509,5 +510,7 @@ npm run dev
 ## 📄 License & Credits
 
 - **Author**: Harsh Anand Badal ([@harshanandbadal](https://github.com/harshanandbadal))
-- **Form Standard**: Indian Railways Form G 37 F/R4, governed by standard rules of Travelling Allowance.
+- **Copyright**: © 2026 Harsh Anand Badal. All rights reserved.
+- **License**: Released under the [MIT License](LICENSE). You are free to use, modify, and distribute this software with attribution.
+- **Form Standard**: Indian Railways Form G 37 F/R4 (S.R. G/G. 1677), governed by standard rules of Travelling Allowance.
 - **Repository**: [https://github.com/harshanandbadal/TA-Journal](https://github.com/harshanandbadal/TA-Journal)

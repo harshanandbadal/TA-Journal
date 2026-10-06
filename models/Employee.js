@@ -2,6 +2,9 @@
    models/Employee.js
    Mongoose schema for employee login / profile data.
    Each employee is uniquely identified by their PF number.
+
+   Copyright (c) 2026 Harsh Anand Badal. All rights reserved.
+   Licensed under the MIT License.
    ══════════════════════════════════════════════════════════════ */
 
 const mongoose = require('mongoose');

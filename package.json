@@ -7,6 +7,16 @@
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
+  "author": "Harsh Anand Badal <harshanandbadal@gmail.com> (https://github.com/harshanandbadal)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/harshanandbadal/TA-Journal.git"
+  },
+  "bugs": {
+    "url": "https://github.com/harshanandbadal/TA-Journal/issues"
+  },
+  "homepage": "https://github.com/harshanandbadal/TA-Journal#readme",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",

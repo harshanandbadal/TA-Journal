@@ -3,6 +3,9 @@
    New Model: auto-generate all days of month,
    inline row editing via sidebar panel.
    MongoDB sync: employee profile + journal rows
+
+   Copyright (c) 2026 Harsh Anand Badal. All rights reserved.
+   Licensed under the MIT License.
    ══════════════════════════════════════════ */
 'use strict';
 

@@ -1,6 +1,9 @@
 /* ══════════════════════════════════════════════════════════════
    TA JOURNAL – LOGIN.JS
    Login form logic + localStorage persistence + MongoDB sync
+
+   Copyright (c) 2026 Harsh Anand Badal. All rights reserved.
+   Licensed under the MIT License.
    ══════════════════════════════════════════════════════════════ */
 
 'use strict';

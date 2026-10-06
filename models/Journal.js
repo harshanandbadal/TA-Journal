@@ -2,6 +2,9 @@
    models/Journal.js
    Mongoose schema for monthly TA journal rows.
    Each document stores all daily rows for one (employee × month).
+
+   Copyright (c) 2026 Harsh Anand Badal. All rights reserved.
+   Licensed under the MIT License.
    ══════════════════════════════════════════════════════════════ */
 
 const mongoose = require('mongoose');
