@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+details/
 
 # Environment secrets – NEVER commit this
 .env
@@ -12,3 +13,7 @@ npm-debug.log*
 # OS files
 .DS_Store
 Thumbs.db
+
+desktop.ini
+folderico-TA Journal.ico
+folderico-TA Journal.lnk

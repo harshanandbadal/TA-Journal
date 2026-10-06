@@ -105,11 +105,10 @@ function fmtDate(dateStr) {
 }
 
 function fmt24to12(t) {
+  // Display time in 24-hour format (HH:MM)
   if (!t || t === '-') return '-';
-  const [h, m] = t.split(':').map(Number);
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  const hh   = ((h % 12) || 12).toString().padStart(2, '0');
-  return `${hh}:${m.toString().padStart(2, '0')}`;
+  const [h, m] = t.split(':');
+  return `${h.padStart(2, '0')}:${(m || '00').padStart(2, '0')}`;
 }
 
 function monthLabel(m) {
@@ -688,6 +687,113 @@ function autoAmount() {
 }
 
 // ══════════════════════════════════════════════
+//  TA ALLOWANCE AUTO-CALCULATION HELPERS
+//  Rules:
+//    outward / intermediate leg → dash (–)
+//    total absence < 6 hrs      → 30%
+//    total absence 6–12 hrs     → 70%
+//    total absence ≥ 12 hrs     → 100%
+// ══════════════════════════════════════════════
+
+/** Convert "HH:MM" to total minutes from midnight. */
+function toMins(t) {
+  if (!t || t === '-') return null;
+  const parts = t.split(':');
+  return parseInt(parts[0], 10) * 60 + parseInt(parts[1] || 0, 10);
+}
+
+/**
+ * Compute the TA allowance for a given calendar date by aggregating
+ * absence durations across all journey rows on that date.
+ *
+ * Rules applied per row segment:
+ *  - Row has depart but no arrival  → overnight departure; count (depart → 24:00)
+ *  - Row has arrival but no depart  → overnight arrival;  count (00:00 → arrival)
+ *  - Row has both depart & arrival  → count (depart → arrival)
+ *
+ * @param {string} date  "YYYY-MM-DD"
+ * @returns {{ pct: string, amount: string }}  e.g. { pct: '70%', amount: '700.00' }
+ */
+function computeDayAllowance(date) {
+  const taRate = parseFloat(empData.taRate || 0);
+  let totalMins = 0;
+
+  journeyRows.forEach(r => {
+    if (r.date !== date) return;
+    // Skip non-duty rows
+    if (!r.depart && !r.arrival) return;
+
+    const deptMins = r.depart  ? toMins(r.depart)  : null;
+    const arrMins  = r.arrival ? toMins(r.arrival) : null;
+
+    if (deptMins !== null && arrMins !== null) {
+      // Same-day segment: depart → arrival
+      const diff = arrMins - deptMins;
+      if (diff > 0) totalMins += diff;
+    } else if (deptMins !== null && arrMins === null) {
+      // Overnight departure: count from depart to end of day (1440 mins)
+      totalMins += (1440 - deptMins);
+    } else if (deptMins === null && arrMins !== null) {
+      // Overnight arrival: count from midnight to arrival
+      totalMins += arrMins;
+    }
+  });
+
+  let pct, amount;
+  if (totalMins < 360) {
+    // Less than 6 hours
+    pct    = '30%';
+    amount = taRate ? (taRate * 0.30).toFixed(2) : '';
+  } else if (totalMins < 720) {
+    // 6 hours to less than 12 hours
+    pct    = '70%';
+    amount = taRate ? (taRate * 0.70).toFixed(2) : '';
+  } else {
+    // 12 hours or more
+    pct    = '100%';
+    amount = taRate ? String(taRate) : '';
+  }
+
+  return { pct, amount };
+}
+
+/**
+ * Rebalance the Day/Night % and Amount for all journey rows on a given date.
+ *
+ * - Rows with no journey data (rest/leave/blank) are left untouched.
+ * - All journey rows except the LAST one on the date → dash (outward leg).
+ * - The LAST journey row on the date → receives the computed allowance.
+ *
+ * "Journey rows" = rows that have at least a depart or arrival time filled.
+ *
+ * @param {string} date  "YYYY-MM-DD"
+ */
+function rebalanceDayAllowances(date) {
+  // Collect indices of journey rows on this date (sorted by array position = insertion order)
+  const journeyIndices = [];
+  journeyRows.forEach((r, i) => {
+    if (r.date === date && (r.depart || r.arrival)) {
+      journeyIndices.push(i);
+    }
+  });
+
+  if (!journeyIndices.length) return;
+
+  // All but the last → dash (outward / intermediate leg)
+  for (let k = 0; k < journeyIndices.length - 1; k++) {
+    const idx = journeyIndices[k];
+    journeyRows[idx].dayNight = '';
+    journeyRows[idx].amount   = '';
+  }
+
+  // Last journey row → compute and assign the day's allowance
+  const lastIdx        = journeyIndices[journeyIndices.length - 1];
+  const { pct, amount } = computeDayAllowance(date);
+  journeyRows[lastIdx].dayNight = pct;
+  journeyRows[lastIdx].amount   = amount;
+}
+
+// ══════════════════════════════════════════════
 //  DOM READY – WIRE UP EVENTS
 // ══════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
@@ -732,6 +838,38 @@ document.addEventListener('DOMContentLoaded', () => {
   const doPrint = () => window.print();
   document.getElementById('btnPrint')?.addEventListener('click', doPrint);
   document.getElementById('btnPrintTop')?.addEventListener('click', doPrint);
+
+  // ── Ensure JS-applied mobile scaling transforms don't leak into print ──
+  // CSS uses !important to override, but inline styles can still cause issues
+  // in some browsers. Clean them up explicitly around print.
+  function stripScaleForPrint() {
+    const scaler = document.getElementById('ta-document-scaler');
+    const doc    = document.getElementById('ta-document');
+    if (scaler) {
+      scaler._savedStyle = scaler.style.cssText;
+      scaler.style.cssText = '';
+    }
+    if (doc) {
+      doc._savedStyle = doc.style.cssText;
+      doc.style.cssText = '';
+    }
+  }
+
+  function restoreScaleAfterPrint() {
+    const scaler = document.getElementById('ta-document-scaler');
+    const doc    = document.getElementById('ta-document');
+    if (scaler && scaler._savedStyle !== undefined) {
+      scaler.style.cssText = scaler._savedStyle;
+      delete scaler._savedStyle;
+    }
+    if (doc && doc._savedStyle !== undefined) {
+      doc.style.cssText = doc._savedStyle;
+      delete doc._savedStyle;
+    }
+  }
+
+  window.addEventListener('beforeprint', stripScaleForPrint);
+  window.addEventListener('afterprint', restoreScaleAfterPrint);
 
   // ══════════════════════════════════════════════
   //  TOOLBAR MONTH / YEAR SELECTS
@@ -878,26 +1016,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const deptDate  = departDt.split('T')[0];              // YYYY-MM-DD
       const deptTime  = departDt.split('T')[1]?.slice(0,5) || '';  // HH:MM
+      const arrDate   = arrivalDt ? arrivalDt.split('T')[0] : '';  // YYYY-MM-DD (may differ)
       const arrTime   = arrivalDt ? (arrivalDt.split('T')[1]?.slice(0,5) || '') : '';
       const month     = deptDate.slice(0, 7);                // YYYY-MM
       const taRate    = parseFloat(empData.taRate || 0);
+      const trainNo   = document.getElementById('ef-train').value.trim();
+      const fromStn   = document.getElementById('ef-from').value.trim().toUpperCase();
+      const toStn     = document.getElementById('ef-to').value.trim().toUpperCase();
+      const distVal   = document.getElementById('ef-dist').value.trim();
+      const objective = document.getElementById('ef-objective').value;
 
-      // ── If month changed or no rows, generate / load month rows ──
-      const currentMonth = val('journalMonth');
-      if (!journeyRows.length || month !== currentMonth) {
-        setVal('journalMonth', month);
-        updateToolbar(month);
+      // Detect overnight train: departure & arrival on different dates
+      const isOvernight = arrDate && arrDate !== deptDate;
+
+      // ── Helper: ensure month rows are loaded ──────────────────────
+      async function ensureMonthRows(targetMonth) {
+        const currentMonth = val('journalMonth');
+        if (journeyRows.length && targetMonth === currentMonth) return;
+        setVal('journalMonth', targetMonth);
+        updateToolbar(targetMonth);
 
         const pf = empData.pf;
         let loaded = false;
         if (pf) {
-          const saved = await loadJournalFromMongo(pf, month);
+          const saved = await loadJournalFromMongo(pf, targetMonth);
           if (saved && saved.length) { journeyRows = saved; loaded = true; }
         }
         if (!loaded) {
-          // Generate blank rows for every day of the month
-          const numDays = daysInMonth(month);
-          const [y, m] = month.split('-');
+          const numDays = daysInMonth(targetMonth);
+          const [y, m] = targetMonth.split('-');
           journeyRows = [];
           for (let d = 1; d <= numDays; d++) {
             const dd = String(d).padStart(2, '0');
@@ -912,46 +1059,129 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      // ── Build entry data ──
-      const newData = {
-        date:      deptDate,
-        train:     document.getElementById('ef-train').value.trim(),
-        depart:    deptTime,
-        arrival:   arrTime,
-        from:      document.getElementById('ef-from').value.trim().toUpperCase(),
-        to:        document.getElementById('ef-to').value.trim().toUpperCase(),
-        dist:      document.getElementById('ef-dist').value.trim(),
-        dayNight:  '100%',
-        amount:    taRate ? String(taRate) : '',
-        objective: document.getElementById('ef-objective').value,
-      };
+      await ensureMonthRows(month);
 
-      // ── Update matching day row or insert & sort ──
-      const rowIdx = journeyRows.findIndex(r => r.date === deptDate);
-      if (rowIdx >= 0) {
-        journeyRows[rowIdx] = { ...journeyRows[rowIdx], ...newData };
-      } else {
-        journeyRows.push(newData);
-        journeyRows.sort((a, b) => a.date.localeCompare(b.date));
-      }
+      if (isOvernight) {
+        // ── OVERNIGHT TRAIN: split across two rows ────────────────
+        // Departure-date row: Train No., Departure time, From station
+        const deptData = {
+          date:      deptDate,
+          train:     trainNo,
+          depart:    deptTime,
+          arrival:   '',          // no arrival on departure date
+          from:      fromStn,
+          to:        '',          // no destination yet
+          dist:      distVal,
+          dayNight:  '',          // will be set by rebalanceDayAllowances
+          amount:    '',
+          objective: objective,
+        };
 
-      renderDocument();
-      syncJournalToMongo();
-
-      // Scroll to and highlight the new row
-      setTimeout(() => {
-        const idx = journeyRows.findIndex(r => r.date === deptDate);
-        if (idx >= 0) {
-          selectRow(idx);
-          document.querySelectorAll('#docTable tbody tr')[idx]
-            ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const deptRowIdx = journeyRows.findIndex(r => r.date === deptDate);
+        if (deptRowIdx >= 0) {
+          journeyRows[deptRowIdx] = { ...journeyRows[deptRowIdx], ...deptData };
+        } else {
+          journeyRows.push(deptData);
         }
-      }, 80);
 
-      this.reset();
-      switchTab('claim');
-      closeEntrySheet();
-      showToast('✔ Claim entry added successfully!', 'success');
+        // Auto-calculate allowance for the departure date
+        rebalanceDayAllowances(deptDate);
+
+        // Arrival-date row may be in a different month – ensure that month is loaded
+        const arrMonth = arrDate.slice(0, 7);
+        if (arrMonth !== month) {
+          // Save current month rows first, then switch
+          await syncJournalToMongo();
+          await ensureMonthRows(arrMonth);
+        }
+
+        // Arrival-date row: Train No., Arrival time, To station
+        const arrData = {
+          date:      arrDate,
+          train:     trainNo,
+          depart:    '',          // departure was on the previous date
+          arrival:   arrTime,
+          from:      '',          // origin was on the previous date
+          to:        toStn,
+          dist:      '',          // distance recorded on departure row
+          dayNight:  '',          // will be set by rebalanceDayAllowances
+          amount:    '',
+          objective: objective,
+        };
+
+        const arrRowIdx = journeyRows.findIndex(r => r.date === arrDate);
+        if (arrRowIdx >= 0) {
+          journeyRows[arrRowIdx] = { ...journeyRows[arrRowIdx], ...arrData };
+        } else {
+          journeyRows.push(arrData);
+          journeyRows.sort((a, b) => a.date.localeCompare(b.date));
+        }
+
+        // Auto-calculate allowance for the arrival date
+        rebalanceDayAllowances(arrDate);
+
+        renderDocument();
+        syncJournalToMongo();
+
+        // Scroll to & highlight the departure-date row
+        setTimeout(() => {
+          const idx = journeyRows.findIndex(r => r.date === deptDate);
+          if (idx >= 0) {
+            selectRow(idx);
+            document.querySelectorAll('#docTable tbody tr')[idx]
+              ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 80);
+
+        this.reset();
+        switchTab('claim');
+        closeEntrySheet();
+        showToast(`✔ Overnight train – split across ${fmtDate(deptDate)} & ${fmtDate(arrDate)}`, 'success');
+
+      } else {
+        // ── SAME-DAY JOURNEY: single row ─────────────────────────
+        const newData = {
+          date:      deptDate,
+          train:     trainNo,
+          depart:    deptTime,
+          arrival:   arrTime,
+          from:      fromStn,
+          to:        toStn,
+          dist:      distVal,
+          dayNight:  '',          // will be set by rebalanceDayAllowances
+          amount:    '',
+          objective: objective,
+        };
+
+        const rowIdx = journeyRows.findIndex(r => r.date === deptDate);
+        if (rowIdx >= 0) {
+          journeyRows[rowIdx] = { ...journeyRows[rowIdx], ...newData };
+        } else {
+          journeyRows.push(newData);
+          journeyRows.sort((a, b) => a.date.localeCompare(b.date));
+        }
+
+        // Auto-calculate allowance based on total absence on this date
+        rebalanceDayAllowances(deptDate);
+
+        renderDocument();
+        syncJournalToMongo();
+
+        // Scroll to and highlight the new row
+        setTimeout(() => {
+          const idx = journeyRows.findIndex(r => r.date === deptDate);
+          if (idx >= 0) {
+            selectRow(idx);
+            document.querySelectorAll('#docTable tbody tr')[idx]
+              ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 80);
+
+        this.reset();
+        switchTab('claim');
+        closeEntrySheet();
+        showToast('✔ Claim entry added successfully!', 'success');
+      }
 
     } else {
       // ── NO CLAIM SUBMISSION ──
